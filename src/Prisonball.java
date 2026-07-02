@@ -5,9 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,10 +28,23 @@ public class Prisonball extends JPanel implements KeyListener {
     private Font textFont;
     private int timerHack;
     private Clip leftBounceSound, rightBounceSound, brickBreakSound;
+    private boolean firstTime;
+    private Thread openingMessage = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            if (firstTime) {
+                firstTime = false;
+                tim.stop();
+                JOptionPane.showMessageDialog(Prisonball.this, "Left paddle: W=up, S=down\nRight paddle: arrow keys\nPause: Spacebar\nClick OK to start!", "Prisonball", JOptionPane.INFORMATION_MESSAGE);
+                tim.restart();
+            }
+        }
+    });
 
     public Prisonball() {
         addKeyListener(this);
         dirty = true;
+        firstTime = true;
         width = height = 0;
         leftPaddle = new Paddle(Team.LEFT);
         rightPaddle = new Paddle(Team.RIGHT);
@@ -126,12 +137,15 @@ public class Prisonball extends JPanel implements KeyListener {
         border.draw(g);
         g.setColor(Color.DARK_GRAY);
         g.setFont(textFont);
-        int textY = (int)(height/25.0)-1;
+        int textY = (int)(height/28.0)-1;
         g.drawString("SCORE: "+String.format("%05d", leftScore), (int)(width/40), textY);
         String rightScoreString = "SCORE: "+String.format("%05d", rightScore);
         g.drawString(rightScoreString, (int)(width*(39.0/40.0))-g.getFontMetrics().stringWidth(rightScoreString), textY);
         String timerString = "TIME: " + (timeRemaining / 60) + ":" + String.format("%02d",timeRemaining % 60);
         g.drawString(timerString, (width-g.getFontMetrics().stringWidth(timerString))/2, textY);
+        if (firstTime) {
+            openingMessage.start();
+        }
     }
 
 
@@ -194,8 +208,12 @@ public class Prisonball extends JPanel implements KeyListener {
         for (var b : balls) {
             if (border.intersects(b)) {
                 //dirty hack
-                Rectangle2D.Double bounds = b.getBounds();
-                if (bounds.y < height/25 || bounds.y > height*(23.0/25.0)) {
+                var bounds = b.getBounds();
+                if (bounds.y < height/25) {
+                    b.forceDown();
+                    b.bounceVertically();
+                } else if (bounds.y > height*(23.0/25.0)) {
+                    b.forceUp();
                     b.bounceVertically();
                 } else {
                     b.bounceHorizontally();
@@ -257,7 +275,7 @@ public class Prisonball extends JPanel implements KeyListener {
             size++;
             Font f = new Font(Font.SANS_SERIF, Font.BOLD, size);
             fm = g.getFontMetrics(f);
-        } while (fm.getMaxAscent() < height/25.0);
+        } while (fm.getMaxAscent() < height/30.0);
         return new Font(Font.SANS_SERIF, Font.BOLD, size-1);
     }
 

@@ -48,12 +48,7 @@ public class Ball {
         g.setColor(team.getColor());
         g.fillOval((int)displayedBounds.x, (int)displayedBounds.y, (int)displayedBounds.width, (int)displayedBounds.height);
     }
-
-//    public void bounce() {
-//        velocity.x *= -1;
-//        velocity.y *= -1;
-//    }
-
+    
     public void bounceVertically() {
         velocity.y *= -1;
     }
@@ -76,5 +71,13 @@ public class Ball {
 
     public void setX(double x) {
         bounds.x = x;
+    }
+
+    public void forceUp() {
+        bounds.y -= bounds.height;
+    }
+
+    public void forceDown() {
+        bounds.y += bounds.height;
     }
 }
