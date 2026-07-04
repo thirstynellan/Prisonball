@@ -27,7 +27,9 @@ public class Prisonball extends JPanel implements KeyListener {
     private Timer tim;
     private Font textFont;
     private int timerHack;
-    private Clip leftBounceSound, rightBounceSound, brickBreakSound;
+    private Clip leftBounceSound, rightBounceSound;
+    private Clip[] brickBreakSound;
+    private int brickSoundIndex;
     private boolean firstTime;
     private Thread openingMessage = new Thread(new Runnable() {
         @Override
@@ -35,7 +37,7 @@ public class Prisonball extends JPanel implements KeyListener {
             if (firstTime) {
                 firstTime = false;
                 tim.stop();
-                JOptionPane.showMessageDialog(Prisonball.this, "Left paddle: W=up, S=down\nRight paddle: arrow keys\nPause: Spacebar\nClick OK to start!", "Prisonball", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(Prisonball.this, "Left paddle: W=up, S=down\nRight paddle: arrow keys\nPause: Spacebar\n\nClick OK to start!", "Prisonball", JOptionPane.INFORMATION_MESSAGE);
                 tim.restart();
             }
         }
@@ -51,19 +53,7 @@ public class Prisonball extends JPanel implements KeyListener {
         walls = new ArrayList<>();
         balls = new ArrayList<>();
         border = new Border();
-        try {
-            var audioIn = AudioSystem.getAudioInputStream(new File("left_paddle_sound.wav").toURI().toURL());
-            leftBounceSound = AudioSystem.getClip();
-            leftBounceSound.open(audioIn);
-            audioIn = AudioSystem.getAudioInputStream(new File("right_paddle_sound.wav").toURI().toURL());
-            rightBounceSound = AudioSystem.getClip();
-            rightBounceSound.open(audioIn);
-            audioIn = AudioSystem.getAudioInputStream(new File("block_break.wav").toURI().toURL());
-            brickBreakSound = AudioSystem.getClip();
-            brickBreakSound.open(audioIn);
-        } catch (Exception e) {
-            IO.println("error loading file");
-        }
+        loadSoundEffects();
         tim = new Timer(10, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -251,8 +241,7 @@ public class Prisonball extends JPanel implements KeyListener {
             for (var w : walls) {
                 if (w.checkForIntersection(b, width)) {
                     b.bounceHorizontally();
-                    brickBreakSound.setFramePosition(0);
-                    brickBreakSound.start();
+                    playBrickBreakSound();
                     if (b.getTeam() == Team.RIGHT) {
                         rightScore += w.getPointValue();
                     } else if (b.getTeam() == Team.LEFT) {
@@ -288,6 +277,32 @@ public class Prisonball extends JPanel implements KeyListener {
             } else {
                 System.exit(0);
             }
+        }
+    }
+
+    private void playBrickBreakSound() {
+        brickBreakSound[brickSoundIndex].setFramePosition(0);
+        brickBreakSound[brickSoundIndex].start();
+        brickSoundIndex = (brickSoundIndex + 1) % brickBreakSound.length;
+    }
+
+    private void loadSoundEffects() {
+        brickSoundIndex = 0;
+        try {
+            var audioIn = AudioSystem.getAudioInputStream(new File("left_paddle.wav").toURI().toURL());
+            leftBounceSound = AudioSystem.getClip();
+            leftBounceSound.open(audioIn);
+            audioIn = AudioSystem.getAudioInputStream(new File("right_paddle.wav").toURI().toURL());
+            rightBounceSound = AudioSystem.getClip();
+            rightBounceSound.open(audioIn);
+            brickBreakSound = new Clip[6];
+            for (int i=1; i<=6; i++) {
+                audioIn = AudioSystem.getAudioInputStream(new File("brick_break" + i + ".wav").toURI().toURL());
+                brickBreakSound[i-1] = AudioSystem.getClip();
+                brickBreakSound[i-1].open(audioIn);
+            }
+        } catch (Exception e) {
+            System.err.println("error loading sound effects");
         }
     }
 
