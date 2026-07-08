@@ -9,10 +9,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-//Sound effect credits:
-// https://pixabay.com/users/u_u4pf5h7zip-50459877/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=345983
-
-
 public class Prisonball extends JPanel implements KeyListener {
 
     private Paddle leftPaddle;
@@ -31,7 +27,7 @@ public class Prisonball extends JPanel implements KeyListener {
     private Clip[] brickBreakSound;
     private int brickSoundIndex;
     private boolean firstTime;
-    private Thread openingMessage = new Thread(new Runnable() {
+    /*private Thread openingMessage = new Thread(new Runnable() {
         @Override
         public void run() {
             if (firstTime) {
@@ -41,7 +37,7 @@ public class Prisonball extends JPanel implements KeyListener {
                 tim.restart();
             }
         }
-    });
+    });*/
 
     public Prisonball() {
         addKeyListener(this);
@@ -133,8 +129,40 @@ public class Prisonball extends JPanel implements KeyListener {
         g.drawString(rightScoreString, (int)(width*(39.0/40.0))-g.getFontMetrics().stringWidth(rightScoreString), textY);
         String timerString = "TIME: " + (timeRemaining / 60) + ":" + String.format("%02d",timeRemaining % 60);
         g.drawString(timerString, (width-g.getFontMetrics().stringWidth(timerString))/2, textY);
+        textY = (int)(height*0.99);
+        g.drawString("PRISONBALL", (width-g.getFontMetrics().stringWidth("PRISONBALL"))/2, textY);
         if (firstTime) {
-            openingMessage.start();
+            //openingMessage.start();
+            showOpeningMessage(g);
+        }
+    }
+
+    private void showOpeningMessage(Graphics2D g) {
+        String[] lines = {"Left paddle: W/S",
+                "Right paddle: arrow keys",
+                "Pause: Spacebar",
+                "Restart: R",
+                "",
+                "Tap spacebar to begin!"};
+
+        int rectWidth = g.getFontMetrics().stringWidth(lines[1] + "pad");
+        int lineHeight = g.getFontMetrics().getMaxAscent();
+        int rectHeight = lineHeight * (lines.length+2);
+        int buffer = rectHeight / 20;
+
+        tim.stop();
+        g.setColor(Color.BLACK);
+        g.fillRect((width-rectWidth)/2, (height-rectHeight)/2, rectWidth, rectHeight);
+        g.setColor(Color.LIGHT_GRAY);
+        g.setStroke(new BasicStroke(rectHeight/100f));
+        g.drawRect((width-rectWidth)/2 + buffer, (height-rectHeight)/2+buffer, rectWidth-2*buffer, rectHeight-2*buffer);
+        g.setColor(Color.GRAY);
+        int y = (height-rectHeight)/2+(int)(lineHeight*1.5);
+        for (int i=0; i<lines.length; i++) {
+            int lineWidth = g.getFontMetrics().stringWidth(lines[i]);
+            int x = (width-lineWidth)/2;
+            g.drawString(lines[i], x, y);
+            y += lineHeight;
         }
     }
 
@@ -166,7 +194,24 @@ public class Prisonball extends JPanel implements KeyListener {
                 leftPaddle.moveDown();
                 break;
             case KeyEvent.VK_SPACE:
-                pauseGame();
+                if (firstTime) {
+                    firstTime = false;
+                    tim.restart();
+                } else {
+                    pauseGame();
+                }
+                break;
+            case KeyEvent.VK_R:
+                if (!firstTime) {
+                    tim.stop();
+                    int yn = JOptionPane.showConfirmDialog(this, "Restart Game?", "PrisonBall", JOptionPane.YES_NO_OPTION);
+                    if (yn == JOptionPane.YES_OPTION) {
+                        startGame();
+                    } else {
+                        tim.restart();
+                    }
+                }
+                break;
         }
     }
 
@@ -289,15 +334,15 @@ public class Prisonball extends JPanel implements KeyListener {
     private void loadSoundEffects() {
         brickSoundIndex = 0;
         try {
-            var audioIn = AudioSystem.getAudioInputStream(new File("left_paddle.wav").toURI().toURL());
+            var audioIn = AudioSystem.getAudioInputStream(new File("audio/left_paddle.wav").toURI().toURL());
             leftBounceSound = AudioSystem.getClip();
             leftBounceSound.open(audioIn);
-            audioIn = AudioSystem.getAudioInputStream(new File("right_paddle.wav").toURI().toURL());
+            audioIn = AudioSystem.getAudioInputStream(new File("audio/right_paddle.wav").toURI().toURL());
             rightBounceSound = AudioSystem.getClip();
             rightBounceSound.open(audioIn);
             brickBreakSound = new Clip[6];
             for (int i=1; i<=6; i++) {
-                audioIn = AudioSystem.getAudioInputStream(new File("brick_break" + i + ".wav").toURI().toURL());
+                audioIn = AudioSystem.getAudioInputStream(new File("audio/brick_break" + i + ".wav").toURI().toURL());
                 brickBreakSound[i-1] = AudioSystem.getClip();
                 brickBreakSound[i-1].open(audioIn);
             }
