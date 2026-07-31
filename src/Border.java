@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.geom.Path2D;
 
 public class Border {
     private Polygon topBorder;

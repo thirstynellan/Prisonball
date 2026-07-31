@@ -22,7 +22,7 @@ public class Wall {
     public void regenerate() {
         for (int i=0; i<23; i++) {
             for (int j=0; j<4; j++) {
-                bricks.add(new Brick(this, pos.x + j*Brick.WIDTH, pos.y + i*Brick.HEIGHT));
+                bricks.add(new Brick(pos.x + j*Brick.WIDTH, pos.y + i*Brick.HEIGHT));
             }
         }
     }

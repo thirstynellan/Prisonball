@@ -1,4 +1,4 @@
-import java.awt.*;
+import java.awt.Color;
 
 public enum Team {
     LEFT(Color.WHITE),
