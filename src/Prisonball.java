@@ -22,7 +22,8 @@ public class Prisonball extends JPanel implements KeyListener {
     private int timeRemaining;
     private Timer tim;
     private Font textFont;
-    private int timerHack;
+    //private int timerHack;
+    private long millis;
     private Clip leftBounceSound, rightBounceSound;
     private Clip[] brickBreakSound;
     private int brickSoundIndex;
@@ -49,6 +50,7 @@ public class Prisonball extends JPanel implements KeyListener {
         walls = new ArrayList<>();
         balls = new ArrayList<>();
         border = new Border();
+        millis = System.currentTimeMillis();
         loadSoundEffects();
         tim = new Timer(10, new ActionListener() {
             @Override
@@ -61,10 +63,12 @@ public class Prisonball extends JPanel implements KeyListener {
                 checkBallWallIntersection();
                 checkForWraparound();
                 checkForEndgame();
-                timerHack++;
-                if (timerHack > 100) {
+                //timerHack++;
+                //if (timerHack > 100) {
+                if (System.currentTimeMillis()-millis >= 1000) {
                     timeRemaining--;
-                    timerHack = 0;
+                    //timerHack = 0;
+                    millis = System.currentTimeMillis();
                 }
                 if (timeRemaining == 20) {
                     border.flash();
@@ -80,7 +84,7 @@ public class Prisonball extends JPanel implements KeyListener {
 
     private void startGame() {
         timeRemaining = 180;
-        timerHack = 0;
+        //timerHack = 0;
         leftScore = rightScore = 0;
         walls.clear();
         walls.add(new Wall(11/40.0, 1/25.0, Color.RED, 10));
