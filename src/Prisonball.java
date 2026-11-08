@@ -28,17 +28,6 @@ public class Prisonball extends JPanel implements KeyListener {
     private Clip[] brickBreakSound;
     private int brickSoundIndex;
     private boolean firstTime;
-    /*private Thread openingMessage = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            if (firstTime) {
-                firstTime = false;
-                tim.stop();
-                JOptionPane.showMessageDialog(Prisonball.this, "Left paddle: W=up, S=down\nRight paddle: arrow keys\nPause: Spacebar\n\nClick OK to start!", "Prisonball", JOptionPane.INFORMATION_MESSAGE);
-                tim.restart();
-            }
-        }
-    });*/
 
     public Prisonball() {
         addKeyListener(this);
@@ -52,38 +41,35 @@ public class Prisonball extends JPanel implements KeyListener {
         border = new Border();
         millis = System.currentTimeMillis();
         loadSoundEffects();
-        tim = new Timer(10, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                leftPaddle.move(height);
-                rightPaddle.move(height);
-                balls.forEach(b -> b.move(width, height));
-                checkBallBorderIntersection();
-                checkBallPaddleIntersection();
-                checkBallWallIntersection();
-                checkForWraparound();
+        tim = new Timer(10, (e) -> {
+            leftPaddle.move(height);
+            rightPaddle.move(height);
+            balls.forEach(b -> b.move(width, height));
+            checkBallBorderIntersection();
+            checkBallPaddleIntersection();
+            checkBallWallIntersection();
+            checkForWraparound();
+            //timerHack++;
+            //if (timerHack > 100) {
+            if (System.currentTimeMillis()-millis >= 1000) {
+                timeRemaining--;
+                //timerHack = 0;
+                millis = System.currentTimeMillis();
                 checkForEndgame();
-                //timerHack++;
-                //if (timerHack > 100) {
-                if (System.currentTimeMillis()-millis >= 1000) {
-                    timeRemaining--;
-                    //timerHack = 0;
-                    millis = System.currentTimeMillis();
-                }
-                if (timeRemaining == 20) {
-                    border.flash();
-                } else if (timeRemaining == 19) {
-                    border.restore();
-                }
-                repaint();
             }
+            if (timeRemaining == 20) {
+                border.flash();
+            } else if (timeRemaining == 19) {
+                border.restore();
+            }
+            repaint();
         });
-        tim.setInitialDelay(100);
+        //tim.setInitialDelay(100);
         startGame();
     }
 
     private void startGame() {
-        timeRemaining = 180;
+        timeRemaining = 30;
         //timerHack = 0;
         leftScore = rightScore = 0;
         walls.clear();
@@ -97,7 +83,9 @@ public class Prisonball extends JPanel implements KeyListener {
         balls.add(new Ball());
         balls.add(new Ball());
         dirty = true;
-        tim.start();
+        if (!firstTime) {
+            tim.start();
+        }
     }
 
     @Override
@@ -136,7 +124,6 @@ public class Prisonball extends JPanel implements KeyListener {
         textY = (int)(height*0.99);
         g.drawString("PRISONBALL", (width-g.getFontMetrics().stringWidth("PRISONBALL"))/2, textY);
         if (firstTime) {
-            //openingMessage.start();
             showOpeningMessage(g);
         }
     }
@@ -171,7 +158,7 @@ public class Prisonball extends JPanel implements KeyListener {
     }
 
 
-    public static void main(String args[]) {
+    void main() {
         JFrame window = new JFrame("Prisonball");
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setSize(1000, 800);
@@ -317,6 +304,9 @@ public class Prisonball extends JPanel implements KeyListener {
         return new Font(Font.SANS_SERIF, Font.BOLD, size-1);
     }
 
+    //FIXME WHY DOES THE ENDGAME DIALOG POPUP TWICE?
+    //ONCE RIGHT BEFORE THE END GAMES, AND ANOTHER RIGHT AFTER?
+    //AND WHY ARE THEY AT DIFFERENT LOCATIONS?
     private void checkForEndgame() {
         if (timeRemaining == 0) {
             tim.stop();
